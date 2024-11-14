@@ -1,4 +1,5 @@
-﻿#include <iostream>
+#include <iostream>
+#include<Windows.h>
 using namespace std;
 
 class Time {
@@ -6,7 +7,7 @@ class Time {
     int min;
     int hour;
 
-    void normal() {
+    void normalize() {
         while (sec >= 60) {
             sec -= 60;
             min++;
@@ -30,15 +31,13 @@ class Time {
     }
 
 public:
-    Time() : sec{ 0 }, min{ 0 }, hour{ 0 } {}
-    Time(int secc, int minn, int hourr) : sec{ secc }, min{ minn }, hour{ hourr } {
-        normal();
+    Time() : sec(0), min(0), hour(0) {}
+    Time(int s, int m, int h) : sec(s), min(m), hour(h) {
+        normalize();
     }
 
-    // Копирующий конструктор
-    Time(const Time& other) : sec{ other.sec }, min{ other.min }, hour{ other.hour } {}
+    Time(const Time& other) : sec(other.sec), min(other.min), hour(other.hour) {}
 
-    // Оператор копирующего присваивания
     Time& operator=(const Time& other) {
         if (this != &other) {
             sec = other.sec;
@@ -48,62 +47,63 @@ public:
         return *this;
     }
 
-    friend const Time operator++(Time& tiime) {
-        ++tiime.sec;
-        tiime.normal();
-        return tiime;
-    }
-
-    friend Time operator-(const Time& tiime1, const Time& tiime2) {
-        Time result;
-        result.sec = tiime1.sec - tiime2.sec;
-        result.min = tiime1.min - tiime2.min;
-        result.hour = tiime1.hour - tiime2.hour;
-        result.normal();
-        return result;
-    }
-
-    bool operator==(const Time& tiime) const {
-        return (hour == tiime.hour && min == tiime.min && sec == tiime.sec);
-    }
-    bool operator!=(const Time& tiime) const {
-        return !(*this == tiime);
-    }
-    bool operator>(const Time& tiime) const {
-        return (hour > tiime.hour) ||
-            (hour == tiime.hour && min > tiime.min) ||
-            (hour == tiime.hour && min == tiime.min && sec > tiime.sec);
-    }
-    bool operator<(const Time& tiime) const {
-        return !(*this > tiime || *this == tiime);
-    }
-
-    friend ostream& operator<<(ostream& output, const Time& tiime) {
-        output << (tiime.hour < 10 ? "0" : "") << tiime.hour << ":"
-            << (tiime.min < 10 ? "0" : "") << tiime.min << ":"
-            << (tiime.sec < 10 ? "0" : "") << tiime.sec;
-        return output;
-    }
-
-    friend istream& operator>>(istream& input, Time& tiime) {
-        input >> tiime.hour;
-        input.ignore(1);
-        input >> tiime.min;
-        input.ignore(1);
-        input >> tiime.sec;
-        tiime.normal();
-        return input;
-    }
-
-    Time& operator+=(int secc) {
-        sec += secc;
-        normal();
+    Time& operator++() {
+        sec++;
+        normalize();
         return *this;
     }
 
-    Time& operator-=(int secc) {
-        sec -= secc;
-        normal();
+    friend Time operator-(const Time& t1, const Time& t2) {
+        Time result;
+        result.sec = t1.sec - t2.sec;
+        result.min = t1.min - t2.min;
+        result.hour = t1.hour - t2.hour;
+        result.normalize();
+        return result;
+    }
+
+    bool operator==(const Time& t) const {
+        return hour == t.hour && min == t.min && sec == t.sec;
+    }
+
+    bool operator!=(const Time& t) const {
+        return !(*this == t);
+    }
+
+    bool operator>(const Time& t) const {
+        return (hour > t.hour) || (hour == t.hour && min > t.min) || (hour == t.hour && min == t.min && sec > t.sec);
+    }
+
+    bool operator<(const Time& t) const {
+        return !(*this > t || *this == t);
+    }
+
+    friend ostream& operator<<(ostream& output, const Time& t) {
+        output << (t.hour < 10 ? "0" : "") << t.hour << ":"
+               << (t.min < 10 ? "0" : "") << t.min << ":"
+               << (t.sec < 10 ? "0" : "") << t.sec;
+        return output;
+    }
+
+    friend istream& operator>>(istream& input, Time& t) {
+        input >> t.hour;
+        input.ignore(1);
+        input >> t.min;
+        input.ignore(1);
+        input >> t.sec;
+        t.normalize();
+        return input;
+    }
+
+    Time& operator+=(int s) {
+        sec += s;
+        normalize();
+        return *this;
+    }
+
+    Time& operator-=(int s) {
+        sec -= s;
+        normalize();
         return *this;
     }
 
@@ -111,41 +111,30 @@ public:
         hour = h;
         min = m;
         sec = s;
-        normal();
-    }
-
-    Time(Time&& timee) noexcept : sec{ timee.sec }, min{ timee.min }, hour{ timee.hour } {
-        timee.sec = timee.min = timee.hour = 0;
-    }
-
-    Time& operator=(Time&& timee) noexcept {
-        if (this != &timee) {
-            sec = timee.sec;
-            min = timee.min;
-            hour = timee.hour;
-            timee.sec = timee.min = timee.hour = 0;
-        }
-        return *this;
+        normalize();
     }
 };
 
 int main() {
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    
+    
     Time t(1, 4, 6);
     ++t;
-    cout << t << endl;
+    cout << "Поточний час t: " << t << endl;
 
     Time t2(0, 3, 7);
-    cout << t - t2 << endl;
+    cout << "Різниця часу t - t2: " << t - t2 << endl;
 
-    bool a = t > t2, b = t < t2, c = t2 == t, d = t != t2;
-    (a) ? cout << "t > t2 = true" << endl : cout << "t > t2 = false" << endl;
-    (b) ? cout << "t < t2= true" << endl : cout << "t > t2 = false" << endl;
-    (c) ? cout << "t == t2 = true" << endl : cout << "t == t2 = false" << endl;
-    (d) ? cout << "t != t2 = true" << endl : cout << "t != t2 = false" << endl;
+    cout << (t > t2 ? "t більше за t2" : "t не більше за t2") << endl;
+    cout << (t < t2 ? "t менше за t2" : "t не менше за t2") << endl;
+    cout << (t == t2 ? "t дорівнює t2" : "t не дорівнює t2") << endl;
+    cout << (t != t2 ? "t не дорівнює t2" : "t дорівнює t2") << endl;
 
     t -= 2;
     t2 += 7;
-    cout << t << " " << t2 << endl;
+    cout << "Після зміни: t = " << t << ", t2 = " << t2 << endl;
 
     return 0;
 }
